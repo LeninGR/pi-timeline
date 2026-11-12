@@ -79,6 +79,9 @@ back to a notice instead of throwing.
   plugins para gentle-shell: https://github.com/Gentleman-Programming/gentle-shell»
 - **L2** (user, verbatim): «acá hay un ejemplo de un plugin que hizo alguien para
   gentle-shell: https://github.com/facundomv01/pi-qwencloud-quota#readme»
+- **L9** (user, verbatim): «nombralo como gentle-timeline y si puedes modifica el nombre
+  del repo y el readme para usar ese nombre». Nombre final: paquete npm `gentle-timeline`,
+  repo `LeninGR/gentle-timeline`, carpeta `plugins/gentle-shell/gentle-timeline`.
 - **L8** (user, verbatim): «renombra la carpeta del repo para que se llame así como el paquete npm»
 - **L7** (user, verbatim): «aparece así [Image#1] a la derecha se ve cortado, deberías de mover
   el indicador de cantidad de prompts y a la lista ponerle padding»

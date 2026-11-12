@@ -1,6 +1,6 @@
 <div align="center">
 
-# pi-timeline
+# gentle-timeline
 
 <a href="https://github.com/Gentleman-Programming/gentle-ai">
   <img width="220" src="https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/docs/assets/brand/built-with-gentle-ai.png" alt="Built with Gentle-AI" />
@@ -50,34 +50,32 @@ Además:
 
 ## Instalación
 
-### Opción 1: desde este repositorio (recomendada)
+### Opción 1: desde npm (recomendada)
 
 ```bash
-git clone https://github.com/LeninGR/pi-timeline.git
-pi install ./pi-timeline
+pi install npm:gentle-timeline
 ```
 
-### Opción 2: probarla sin cambiar tu configuración
+### Opción 2: desde este repositorio
 
 ```bash
-pi -e ./pi-timeline
+git clone https://github.com/LeninGR/gentle-timeline.git
+pi install ./gentle-timeline
 ```
 
-### Opción 3: como extensión suelta (lo que usa el desarrollo)
-
-Desde adentro del checkout, para que el symlink apunte siempre a tu copia de trabajo:
+### Opción 3: probarla sin cambiar tu configuración
 
 ```bash
-ln -s "$PWD" ~/.gentle-shell/agent/extensions/pi-timeline
+pi -e ./gentle-timeline
 ```
-
-Pi descubre `<agent home>/extensions/<nombre>/index.ts` al arrancar: `/reload` alcanza después de cada cambio.
 
 ### Opción 4: agregarla a tu `settings.json`
 
 ```json
-{ "packages": ["./pi-timeline"] }
+{ "packages": ["npm:gentle-timeline"] }
 ```
+
+Para desarrollo, como extensión suelta: `ln -s "$PWD" ~/.gentle-shell/agent/extensions/gentle-timeline` desde adentro del checkout. Pi descubre `<agent home>/extensions/<nombre>/index.ts` al arrancar, así que `/reload` alcanza después de cada cambio.
 
 El paquete declara su entrada con el manifiesto `pi.extensions` de `package.json` (`./index.ts`), así que Pi lo carga como una extensión normal. **No tiene dependencias de runtime**: Pi lo carga con jiti y todos los tipos de Pi son shims estructurales locales, no hay nada que instalar.
 
@@ -151,7 +149,7 @@ npm run typecheck
 
 48 tests cubren las especificaciones de punta a punta con tema, keybindings y `tui` falsos: extracción de prompts, resolución de fila y scroll, el modal (teclado, filtro, mouse, ventana, ancho), el chrome de los dos estilos con su fallback, y el seating respecto de la rail. Nada toca una terminal real.
 
-El documento de la feature, con las specs verbatim y el registro de decisiones, está en [`odd/tasks/timeline-plugin.md`](odd/tasks/timeline-plugin.md).
+El documento de la feature, con las specs verbatim y el registro de decisiones, está en [`odd/tasks/timeline-plugin.md`](https://github.com/LeninGR/gentle-timeline/blob/main/odd/tasks/timeline-plugin.md).
 
 ## Licencia
 

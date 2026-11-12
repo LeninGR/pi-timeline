@@ -1,7 +1,7 @@
 {
-	"name": "pi-timeline",
+	"name": "gentle-timeline",
 	"version": "0.1.0",
-	"description": "Pi/gentle-shell extension that adds /timeline: a modal listing every prompt of the current session, where Enter or a click jumps the transcript to that point.",
+	"description": "Pi / gentle-shell extension: /timeline lists every prompt of the current session and jumps the transcript to that point.",
 	"keywords": [
 		"pi-package",
 		"pi-extension",
@@ -32,7 +32,8 @@
 	},
 	"scripts": {
 		"test": "node --test \"test/**/*.test.ts\"",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"prepublishOnly": "npm test && npm run typecheck"
 	},
 	"devDependencies": {
 		"@types/node": "^22.10.0",
@@ -40,10 +41,10 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LeninGR/pi-timeline.git"
+		"url": "git+https://github.com/LeninGR/gentle-timeline.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LeninGR/pi-timeline/issues"
+		"url": "https://github.com/LeninGR/gentle-timeline/issues"
 	},
-	"homepage": "https://github.com/LeninGR/pi-timeline#readme"
+	"homepage": "https://github.com/LeninGR/gentle-timeline#readme"
 }
