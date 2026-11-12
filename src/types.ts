@@ -9,6 +9,8 @@
 export interface PiTheme {
 	fg(color: string, text: string): string;
 	bold(text: string): string;
+	/** Background roles; absent on themes that cannot paint one (the card then stays outlined). */
+	bg?(color: string, text: string): string;
 }
 
 export interface PiKeybindings {

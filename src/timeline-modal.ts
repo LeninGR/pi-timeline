@@ -1,6 +1,9 @@
+import { renderCardFrame } from "./card-chrome.ts";
+import type { CardBodyRow, CardSegment } from "./card-chrome.ts";
+import type { CardStyle } from "./card-style.ts";
 import { clockOf, filterPrompts, previewOf } from "./prompts.ts";
 import type { SessionPrompt } from "./prompts.ts";
-import { stripSequences } from "./transcript.ts";
+import { pad, truncate, widthOf } from "./width.ts";
 import type { PiComponent, PiKeybindings, PiMouseEvent, PiMouseEventResult, PiTheme, PiTui } from "./types.ts";
 
 /** What the modal returns to its caller: jump to a prompt, or just close. */
@@ -10,10 +13,15 @@ export interface TimelineModalOptions {
 	/** Visible prompt rows; the window follows the selection past this size. */
 	maxRows?: number;
 	title?: string;
+	/** From Gentle → Customize; `float` unless the shell said otherwise. */
+	style?: CardStyle;
 }
+
+export { pad, truncate, widthOf };
 
 const DEFAULT_MAX_ROWS = 14;
 const PAGE_STEPS = 10;
+const FOOTER_HINT = "type to filter · ↵ jump · esc close";
 
 const UP_KEYS = new Set(["\x1b[A", "\x1bOA"]);
 const DOWN_KEYS = new Set(["\x1b[B", "\x1bOB"]);
@@ -24,39 +32,6 @@ const END_KEYS = new Set(["\x1b[F", "\x1b[4~", "\x1bOF"]);
 const ENTER_KEYS = new Set(["\r", "\n"]);
 const BACKSPACE_KEYS = new Set(["\x7f", "\b"]);
 
-function cellWidth(text: string): number {
-	let width = 0;
-	for (const char of text) {
-		if (/\p{Mark}|\p{Default_Ignorable_Code_Point}/u.test(char)) continue;
-		width += /[\p{Extended_Pictographic}\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe10-\ufe6f\uff01-\uff60\uffe0-\uffe6]/u.test(char) ? 2 : 1;
-	}
-	return width;
-}
-
-/** Visible cell count of an escape-free string. */
-export function widthOf(text: string): number {
-	return cellWidth(text);
-}
-
-/** Cut to `width` cells, appending an ellipsis when something was dropped. */
-export function truncate(text: string, width: number): string {
-	if (width <= 0) return "";
-	if (widthOf(text) <= width) return text;
-	const budget = Math.max(0, width - 1);
-	let out = "";
-	for (const char of text) {
-		if (widthOf(out + char) > budget) break;
-		out += char;
-	}
-	return `${out}…`;
-}
-
-/** Pad to exactly `width` cells (never truncates). */
-export function pad(text: string, width: number): string {
-	const missing = width - widthOf(text);
-	return missing > 0 ? `${text}${" ".repeat(missing)}` : text;
-}
-
 interface TimelineState {
 	query: string;
 	selected: number;
@@ -66,8 +41,9 @@ interface TimelineState {
 
 /**
  * The `/timeline` modal: every prompt of this session as one row, newest last,
- * with the same interaction as opencode's timeline — arrows or the wheel to move,
- * Enter or a click to jump, Esc to close, and typing to filter by text.
+ * with opencode's timeline interaction — arrows or the wheel to move, Enter or a
+ * click to jump, Esc to close — drawn as a gentle-shell card in the user's
+ * selected card style.
  */
 export function createTimelineModal(
 	tui: PiTui,
@@ -78,21 +54,11 @@ export function createTimelineModal(
 	options: TimelineModalOptions = {},
 ): PiComponent {
 	const maxRows = Math.max(1, options.maxRows ?? DEFAULT_MAX_ROWS);
-	const title = options.title ?? "Timeline";
+	const title = (options.title ?? "Timeline").toUpperCase();
+	const style: CardStyle = options.style ?? "float";
 	const state: TimelineState = { query: "", selected: 0, windowTop: 0, finished: false };
-	/** Row index inside the card → index in the filtered list, for mouse hits. */
+	/** Row index inside the rendered card → index in the filtered list, for mouse hits. */
 	let hits: Array<{ y: number; index: number }> = [];
-
-	const paint = (style: (text: string) => string, text: string): string => {
-		try {
-			return style(text);
-		} catch {
-			return text;
-		}
-	};
-	const dim = (text: string) => paint((value) => theme.fg("dim", value), text);
-	const accent = (text: string) => paint((value) => theme.fg("accent", value), text);
-	const bold = (text: string) => paint((value) => theme.bold(value), text);
 
 	const matched = (): SessionPrompt[] => filterPrompts(prompts, state.query);
 
@@ -109,9 +75,8 @@ export function createTimelineModal(
 	};
 
 	const move = (delta: number): void => {
-		const total = matched().length;
 		state.selected += delta;
-		clampSelection(total);
+		clampSelection(matched().length);
 		tui.requestRender();
 	};
 
@@ -193,51 +158,66 @@ export function createTimelineModal(
 		return undefined;
 	};
 
-	const renderRow = (prompt: SessionPrompt, index: number, width: number): string => {
+	const rowSegments = (prompt: SessionPrompt, index: number): CardSegment[] => {
 		const selected = index === state.selected;
-		const marker = selected ? "▌" : " ";
-		const number = String(prompt.position).padStart(3, " ");
+		const role = selected ? "accent" : "muted";
 		const clock = clockOf(prompt.timestamp);
-		const head = `${marker}${number} ${clock ? `${clock} ` : ""}`;
-		const room = Math.max(8, width - widthOf(head));
-		const body = truncate(previewOf(prompt.text) || "(empty prompt)", room);
-		const line = pad(`${head}${body}`, width);
-		return selected ? accent(line) : paint((value) => theme.fg("text", value), line);
+		const segments: CardSegment[] = [
+			{ text: `${selected ? "›" : " "}${String(prompt.position).padStart(3, " ")} `, role, bold: selected },
+		];
+		if (clock) segments.push({ text: `${clock} `, role });
+		segments.push({ text: previewOf(prompt.text) || "(empty prompt)", role: selected ? "accent" : "text", bold: selected });
+		return segments;
 	};
 
 	const render = (width: number): string[] => {
 		const list = matched();
 		clampSelection(list.length);
-		const innerWidth = Math.max(16, width);
-		const rule = dim("─".repeat(innerWidth));
-		const lines: string[] = [];
-		const counter = `${list.length}/${prompts.length}`;
-		const header = `${bold(accent(title))} ${dim(`· ${counter} prompts`)}`;
-		lines.push(truncatePlainLine(header, innerWidth));
-		if (state.query) lines.push(dim(truncate(`filter: ${state.query}`, innerWidth)));
-		lines.push(rule);
 
-		hits = [];
+		// Native rail cards indent their body two columns under the header glyph.
+		const indent: CardSegment = { text: "  ", role: "dim" };
+		const rows: CardBodyRow[] = [];
+		let promptRows = 0;
+		if (state.query) rows.push({ segments: [indent, { text: `filter: ${state.query}`, role: "dim" }] });
+
 		if (list.length === 0) {
-			lines.push(dim(truncate(prompts.length === 0 ? "No prompts in this session yet" : "No prompt matches that filter", innerWidth)));
-		} else {
-			const visible = list.slice(state.windowTop, state.windowTop + maxRows);
-			const offset = state.windowTop;
-			visible.forEach((prompt, row) => {
-				// `lines.length` is this row's own index: the hit is pushed right before the row.
-				hits.push({ y: lines.length, index: offset + row });
-				lines.push(renderRow(prompt, offset + row, innerWidth));
+			rows.push({
+				segments: [indent, { text: prompts.length === 0 ? "No prompts in this session yet" : "No prompt matches that filter", role: "dim" }],
 			});
+			promptRows = 0;
+		} else {
+			const windowTop = state.windowTop;
+			list.slice(windowTop, windowTop + maxRows).forEach((prompt, row) => {
+				rows.push({ segments: [indent, ...rowSegments(prompt, windowTop + row)] });
+			});
+			promptRows = rows.length - (state.query ? 1 : 0);
 			if (list.length > maxRows) {
-				const from = state.windowTop + 1;
-				const to = Math.min(list.length, state.windowTop + maxRows);
-				lines.push(dim(truncate(`rows ${from}-${to} of ${list.length}`, innerWidth)));
+				const from = windowTop + 1;
+				const to = Math.min(list.length, windowTop + maxRows);
+				rows.push({ segments: [indent, { text: `rows ${from}-${to} of ${list.length}`, role: "dim" }] });
 			}
 		}
 
-		lines.push(rule);
-		lines.push(dim(truncate("type to filter · enter/click jump · ↑↓ move · esc close", innerWidth)));
-		return lines;
+		const rendered = renderCardFrame(
+			{
+				title,
+				meta: `${list.length}/${prompts.length} prompts`,
+				rows,
+				footer: `  ${FOOTER_HINT}`,
+			},
+			theme,
+			style,
+			width,
+		);
+
+		// The hit map is the body offset plus each prompt row's own position; rows that
+		// are not prompts (filter line, window indicator) are simply absent from it.
+		const firstPromptRow = rendered.bodyStart + (state.query ? 1 : 0);
+		hits = [];
+		for (let index = 0; index < promptRows; index += 1) {
+			hits.push({ y: firstPromptRow + index, index: state.windowTop + index });
+		}
+		return rendered.lines;
 	};
 
 	return {
@@ -251,14 +231,4 @@ export function createTimelineModal(
 			hits = [];
 		},
 	};
-}
-
-/**
- * Truncate a line that already carries escapes: the cut is applied to the visible
- * text, and styled rows are only cut at their own boundaries when safe. Prefer
- * building rows from plain text; this is the safety net for composed headers.
- */
-function truncatePlainLine(styled: string, width: number): string {
-	if (widthOf(stripSequences(styled)) <= width) return styled;
-	return truncate(stripSequences(styled), width);
 }

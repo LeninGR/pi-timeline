@@ -1,3 +1,4 @@
+import { stripSequences } from "./width.ts";
 import type { PiLayoutBox, PiScrollView, PiTui } from "./types.ts";
 
 /**
@@ -8,15 +9,10 @@ import type { PiLayoutBox, PiScrollView, PiTui } from "./types.ts";
  */
 export const OSC133_PROMPT_START = /^\x1b\]133;A(?:\x07|\x1b\\)/;
 
-const OSC_SEQUENCE = /\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/gu;
-const CSI_SEQUENCE = /\x1b\[[0-9;?]*[ -/]*[@-~]/gu;
 /** Markdown decoration that Pi's renderer drops, so the prompt text must drop it too. */
 const MARKDOWN_DECORATION = /[*_`#>~]/gu;
 
-/** Remove terminal escape sequences so a rendered line can be compared by its text. */
-export function stripSequences(text: string): string {
-	return text.replace(OSC_SEQUENCE, "").replace(CSI_SEQUENCE, "");
-}
+export { stripSequences };
 
 /** Escape-free, whitespace-collapsed text: wrapping and styling stop mattering. */
 export function normalize(text: string): string {

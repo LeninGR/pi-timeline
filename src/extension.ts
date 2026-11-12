@@ -1,3 +1,4 @@
+import { readCardStyle } from "./card-style.ts";
 import { extractPrompts } from "./prompts.ts";
 import { createTimelineModal } from "./timeline-modal.ts";
 import type { TimelineResult } from "./timeline-modal.ts";
@@ -51,10 +52,12 @@ export async function openTimeline(ctx: PiContext): Promise<void> {
 	}
 
 	let tui: PiTui | undefined;
+	// Read once per open: the style is a preference file, not per-frame state.
+	const style = readCardStyle();
 	const result = await ctx.ui.custom<TimelineResult>(
 		(tuiArg, theme, keys, done) => {
 			tui = tuiArg;
-			return createTimelineModal(tuiArg, theme, keys, (value) => done(value), prompts);
+			return createTimelineModal(tuiArg, theme, keys, (value) => done(value), prompts, { style });
 		},
 		OVERLAY,
 	);
