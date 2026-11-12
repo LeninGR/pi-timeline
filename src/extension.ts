@@ -2,16 +2,18 @@ import { readCardStyle } from "./card-style.ts";
 import { extractPrompts } from "./prompts.ts";
 import { createTimelineModal } from "./timeline-modal.ts";
 import type { TimelineResult } from "./timeline-modal.ts";
+import { conversationOverlayOptions, railColumns } from "./overlay.ts";
 import { collectMessageRows, findScrollBox, markerRows, resolvePromptRow, scrollTranscriptTo } from "./transcript.ts";
 import type { PiApi, PiContext, PiTui } from "./types.ts";
 
 export const COMMAND_NAME = "timeline";
 export const COMMAND_DESCRIPTION = "List every prompt of this session and jump to one";
 
-const OVERLAY = {
-	overlay: true as const,
-	overlayOptions: { anchor: "center", width: "76%", minWidth: 56, maxHeight: "85%" },
-};
+// The overlay is seated by a live getter, and `tui` is only available inside the
+// factory, which Pi resolves before it shows the overlay.
+function overlayFor(getTui: () => PiTui | undefined) {
+	return { overlay: true as const, overlayOptions: conversationOverlayOptions(getTui) };
+}
 
 function notify(ctx: PiContext, message: string, level: "info" | "warning" | "error" = "info"): void {
 	try {
@@ -59,7 +61,7 @@ export async function openTimeline(ctx: PiContext): Promise<void> {
 			tui = tuiArg;
 			return createTimelineModal(tuiArg, theme, keys, (value) => done(value), prompts, { style });
 		},
-		OVERLAY,
+		overlayFor(() => tui),
 	);
 
 	if (!result || result.kind !== "jump" || !tui) return;
@@ -81,31 +83,36 @@ export async function openTimeline(ctx: PiContext): Promise<void> {
  */
 export async function reportDiagnostics(ctx: PiContext): Promise<void> {
 	const prompts = extractPrompts(ctx.sessionManager.getBranch());
+	let diagnosticsTui: PiTui | undefined;
 	await ctx.ui.custom<void>(
-		(tui, theme, _keys, done) => ({
-			render: (width: number) => {
-				const scrollView = tui.getPrimaryScrollView?.();
-				const box = scrollView ? findScrollBox(tui.currentLayout?.root, scrollView) : undefined;
-				const lines = box?.scrollContentLines ?? [];
-				const parts = [
-					`mode=${ctx.mode ?? "unknown"}`,
-					`prompts=${prompts.length}`,
-					`scrollView=${scrollView ? "yes" : "no"}`,
-					`contentLines=${lines.length}`,
-					`messageRows=${collectMessageRows(box).size}`,
-					`markers=${markerRows(lines).length}`,
-				];
-				const inner = Math.max(16, width);
-				return [
-					theme.fg("accent", "timeline debug"),
-					...parts.map((part) => theme.fg("dim", part.slice(0, inner))),
-					theme.fg("dim", "enter or esc closes"),
-				];
-			},
-			handleInput: (data: string) => {
-				if (data === "\r" || data === "\n" || data === "\x1b" || data === "\x03") done();
-			},
-		}),
-		OVERLAY,
+		(tui, theme, _keys, done) => {
+			diagnosticsTui = tui;
+			return {
+				render: (width: number) => {
+					const scrollView = tui.getPrimaryScrollView?.();
+					const box = scrollView ? findScrollBox(tui.currentLayout?.root, scrollView) : undefined;
+					const lines = box?.scrollContentLines ?? [];
+					const parts = [
+						`mode=${ctx.mode ?? "unknown"}`,
+						`prompts=${prompts.length}`,
+						`scrollView=${scrollView ? "yes" : "no"}`,
+						`contentLines=${lines.length}`,
+						`messageRows=${collectMessageRows(box).size}`,
+						`markers=${markerRows(lines).length}`,
+						`railColumns=${railColumns(tui.terminal)}`,
+					];
+					const inner = Math.max(16, width);
+					return [
+						theme.fg("accent", "timeline debug"),
+						...parts.map((part) => theme.fg("dim", part.slice(0, inner))),
+						theme.fg("dim", "enter or esc closes"),
+					];
+				},
+				handleInput: (data: string) => {
+					if (data === "\r" || data === "\n" || data === "\x1b" || data === "\x03") done();
+				},
+			};
+		},
+		overlayFor(() => diagnosticsTui),
 	);
 }

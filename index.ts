@@ -11,6 +11,7 @@ export type { TimelineResult } from "./src/timeline-modal.ts";
 export { configHomeCandidates, parseCardStyleFile, readCardStyle } from "./src/card-style.ts";
 export type { CardStyle } from "./src/card-style.ts";
 export { normalize, resolvePromptRow, resolveRowsByText, markerRows } from "./src/transcript.ts";
+export { conversationOverlayOptions, railColumns, terminalColumns } from "./src/overlay.ts";
 
 export default function piTimeline(pi: PiApi): void {
 	registerTimelineExtension(pi);

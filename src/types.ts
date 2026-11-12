@@ -54,6 +54,8 @@ export interface PiLayoutBox {
 
 export interface PiTui {
 	requestRender(): void;
+	/** The live terminal: the only source of the current width and height. */
+	terminal?: { columns?: number; rows?: number };
 	/** Present on the alt-screen renderer only (fullscreen mode). */
 	getPrimaryScrollView?(): PiScrollView | undefined;
 	currentLayout?: { root?: PiLayoutBox } | undefined;
@@ -61,11 +63,16 @@ export interface PiTui {
 
 export interface PiOverlayOptions {
 	anchor?: string;
-	width?: number | string;
+	width?: number | `${number}%`;
 	minWidth?: number;
-	maxWidth?: number | string;
-	maxHeight?: number | string;
-	margin?: number;
+	maxWidth?: number | `${number}%`;
+	maxHeight?: number | `${number}%`;
+	offsetX?: number;
+	offsetY?: number;
+	/** Insets the available box and clamps the overlay inside it. */
+	margin?: number | { top?: number; right?: number; bottom?: number; left?: number };
+	/** Called on every render pass with the current terminal size. */
+	visible?: (termWidth: number, termHeight: number) => boolean;
 }
 
 export interface PiCustomOptions {
