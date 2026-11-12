@@ -3,17 +3,25 @@
 A [Pi](https://github.com/earendil-works/pi) / [gentle-shell](https://github.com/Gentleman-Programming/gentle-shell) extension that adds `/timeline`, the prompt list opencode has: every prompt you sent to the model in this session, in one modal, and Enter (or a click) takes the transcript straight to that point.
 
 ```
-╭──────────────────────────────────────────────────────────╮
-│ Timeline · 4/4 prompts                                   │
-│ ──────────────────────────────────────────────────────── │
-│ ▌  4 21:12 arreglá el parser del timeline                │
-│    3 21:05 ahora los tests                               │
-│    2 20:58 ¿por qué falla en fullscreen?                 │
-│    1 20:41 quiero crear un plugin para gentle-shell …    │
-│ ──────────────────────────────────────────────────────── │
-│ type to filter · enter/click jump · ↑↓ move · esc close  │
-╰──────────────────────────────────────────────────────────╯
+ ▎                                                           
+ ▎ ▾ TIMELINE                                    4/4 prompts 
+ ▎                                                           
+ ▎   ›  4 21:12 arreglá el parser del timeline                
+ ▎      3 21:05 ahora los tests                               
+ ▎      2 20:58 ¿por qué falla en fullscreen?                 
+ ▎      1 20:41 quiero crear un plugin para gentle-shell …    
+ ▎   type to filter · ↵ jump · esc close                      
+ ▎                                                           
 ```
+
+It is drawn as a gentle-shell card, in whatever card style you picked in Gentle →
+Customize: `float` (the tinted block with its `▎` accent bar, this one) or `neon`
+(the rounded `╭─ ▾ TIMELINE ────╮` frame). The style comes from
+`<gentle config home>/card-style.json`, resolved in the same order the shell uses
+(bundled prefix → `GENTLE_PI_CONFIG_HOME` → `GENTLE_SHELL_CONFIG_HOME` →
+`~/.pi/gentle-ai`); a missing, malformed or unreadable file means `float`, exactly
+like the shell. A theme that cannot paint a background, or a terminal narrower
+than 10 columns, falls back to the frame instead of drawing half a card.
 
 ## What it does
 
@@ -22,6 +30,7 @@ A [Pi](https://github.com/earendil-works/pi) / [gentle-shell](https://github.com
 - **↑ / ↓**, `PageUp` / `PageDown`, `Home` / `End` and the **wheel** move the selection.
 - Typing filters by any substring of the prompt; `Backspace` edits the filter, `ctrl+u` clears it, `Esc` closes.
 - **`/timeline debug`** opens a one-screen report of the mechanism the jump relies on (`scrollView`, `contentLines`, `messageRows`, `markers`). Useful when a Pi upgrade moves something.
+- The card follows your **card style** and **theme**: `float` tints the block and puts the `▎` accent bar on its edge, `neon` draws the rounded frame; title in `text`+bold, meta in `muted`, hints in `dim`, selected row in `accent`.
 
 Only user turns are listed: tool results, compaction summaries, custom entries and empty prompts are skipped. Nothing is stored and nothing is captured — the list is read from the live session, so it works with prompt-history capture off.
 

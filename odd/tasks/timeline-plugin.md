@@ -29,6 +29,9 @@ to that point.
 - **T5** — `src/extension.ts` + `index.ts`: register `/timeline`, open the modal, apply the
   jump, degrade with a notice when the runtime has no scrollable transcript. Spec: S2–S4.
 - **T6** — tests (`node --test`) + live install into the agent extension dir. Spec: S1–S4.
+- **T7** — `src/card-style.ts` + `src/card-chrome.ts`: read the card style the shell uses and
+  render the modal as a native card (float tint with the `▎` accent bar, or the neon frame),
+  with a frame fallback when the theme cannot paint a background. Spec: S5.
 
 ## Evidence
 
@@ -45,6 +48,12 @@ Seam used for the jump (all read from the installed runtime, not guessed):
   (`\x1b]133;A`) that `TuiAltScreen.scrollToPrompt` scans; `UserMessageComponent` and
   `AssistantMessageComponent` store the session `entry.id` as `messageId`.
 
+- Card chrome mirrors gentle-pi's own `lib/shell-card.ts` / `lib/shell-panel.ts`:
+  `▾ TITLE` header with a right-aligned count, body indented 2 columns, float = tone
+  background painted per row with the `▎` accent bar inside a one-column margin, neon =
+  `╭─ ▾ TITLE ─── count ─╮` frame. Style from `<config home>/card-style.json`
+  (`gentle-pi.card-style/v1`), resolved in the shell's own precedence.
+
 Limits accepted by this design (documented in the README): the scroll route uses
 runtime internals that Pi does not declare as public API, so it is guarded and falls
 back to a notice instead of throwing.
@@ -59,6 +68,9 @@ back to a notice instead of throwing.
   plugins para gentle-shell: https://github.com/Gentleman-Programming/gentle-shell»
 - **L2** (user, verbatim): «acá hay un ejemplo de un plugin que hizo alguien para
   gentle-shell: https://github.com/facundomv01/pi-qwencloud-quota#readme»
+- **L5** (user, verbatim): «podemos hacer que el modal de timeline tenga el estilo que el
+  usuario tenga seleccionado en customization de gentle-shell? así como los recuadros que
+  se ven a la derecha»
 - **L3** (user, verbatim): «funciona, acabo de probarlo, pero necesito que borres el clone y
   muevas timeline dentro de gentle-shell»
 - **L4** (user, decision): destino final elegido entre las opciones ofrecidas —
