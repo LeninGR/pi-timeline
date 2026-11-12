@@ -59,3 +59,7 @@ back to a notice instead of throwing.
   plugins para gentle-shell: https://github.com/Gentleman-Programming/gentle-shell»
 - **L2** (user, verbatim): «acá hay un ejemplo de un plugin que hizo alguien para
   gentle-shell: https://github.com/facundomv01/pi-qwencloud-quota#readme»
+- **L3** (user, verbatim): «funciona, acabo de probarlo, pero necesito que borres el clone y
+  muevas timeline dentro de gentle-shell»
+- **L4** (user, decision): destino final elegido entre las opciones ofrecidas —
+  `plugins/gentle-shell/timeline`; el clon de referencia de `gentle-shell` se borró entero.
