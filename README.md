@@ -29,7 +29,8 @@ than 10 columns, falls back to the frame instead of drawing half a card.
 - **Enter** or a **click** closes the modal and scrolls the conversation so that prompt is the first visible line.
 - **↑ / ↓**, `PageUp` / `PageDown`, `Home` / `End` and the **wheel** move the selection.
 - Typing filters by any substring of the prompt; `Backspace` edits the filter, `ctrl+u` clears it, `Esc` closes.
-- **`/timeline debug`** opens a one-screen report of the mechanism the jump relies on (`scrollView`, `contentLines`, `messageRows`, `markers`). Useful when a Pi upgrade moves something.
+- The card is centred on the **conversation column**, not the window: gentle-shell publishes its rail state on the terminal (`gentle-pi.experimental-sidebar.state`), and the overlay uses it as a live right margin, so the modal never covers the TODOS / AGENTS / CHANGES / STATS cards and re-seats itself if you resize across the rail's breakpoint. Without that state the overlay centres on the whole window, as before.
+- **`/timeline debug`** opens a one-screen report of the mechanism the jump relies on (`scrollView`, `contentLines`, `messageRows`, `markers`, `railColumns`). Useful when a Pi upgrade moves something.
 - The card follows your **card style** and **theme**: `float` tints the block and puts the `▎` accent bar on its edge, `neon` draws the rounded frame; title in `text`+bold, meta in `muted`, hints in `dim`, selected row in `accent`.
 
 Only user turns are listed: tool results, compaction summaries, custom entries and empty prompts are skipped. Nothing is stored and nothing is captured — the list is read from the live session, so it works with prompt-history capture off.

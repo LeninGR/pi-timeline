@@ -29,6 +29,9 @@ to that point.
 - **T5** — `src/extension.ts` + `index.ts`: register `/timeline`, open the modal, apply the
   jump, degrade with a notice when the runtime has no scrollable transcript. Spec: S2–S4.
 - **T6** — tests (`node --test`) + live install into the agent extension dir. Spec: S1–S4.
+- **T8** — `src/overlay.ts`: read the rail width gentle-shell publishes on the terminal and
+  pass it as a live right margin plus an absolute width, so the overlay is centred inside
+  the conversation column and re-seats itself on resize. Spec: S6.
 - **T7** — `src/card-style.ts` + `src/card-chrome.ts`: read the card style the shell uses and
   render the modal as a native card (float tint with the `▎` accent bar, or the neon frame),
   with a frame fallback when the theme cannot paint a background. Spec: S5.
@@ -54,6 +57,12 @@ Seam used for the jump (all read from the installed runtime, not guessed):
   `╭─ ▾ TITLE ─── count ─╮` frame. Style from `<config home>/card-style.json`
   (`gentle-pi.card-style/v1`), resolved in the shell's own precedence.
 
+- Overlay seating comes from the rail state gentle-pi publishes on the terminal under
+  `Symbol.for("gentle-pi.experimental-sidebar.state")` (`{active, ownsHost(), railColumns}`),
+  the same channel its own prompt picker reads (`extensions/history/selector-helpers.ts`
+  `editorOverlayMargin`). Pi re-reads `width` and `margin` on every render pass, so both are
+  getters over the live terminal.
+
 Limits accepted by this design (documented in the README): the scroll route uses
 runtime internals that Pi does not declare as public API, so it is guarded and falls
 back to a notice instead of throwing.
@@ -68,6 +77,8 @@ back to a notice instead of throwing.
   plugins para gentle-shell: https://github.com/Gentleman-Programming/gentle-shell»
 - **L2** (user, verbatim): «acá hay un ejemplo de un plugin que hizo alguien para
   gentle-shell: https://github.com/facundomv01/pi-qwencloud-quota#readme»
+- **L6** (user, verbatim): «podemos hacer que el modal se centre en la salida del modelo y
+  que no pise las cards de la derecha, se entiende?»
 - **L5** (user, verbatim): «podemos hacer que el modal de timeline tenga el estilo que el
   usuario tenga seleccionado en customization de gentle-shell? así como los recuadros que
   se ven a la derecha»
