@@ -1,0 +1,41 @@
+{
+	"name": "pi-timeline",
+	"version": "0.1.0",
+	"description": "Pi/gentle-shell extension that adds /timeline: a modal listing every prompt of the current session, where Enter or a click jumps the transcript to that point.",
+	"keywords": [
+		"pi-package",
+		"pi-extension",
+		"gentle-shell",
+		"timeline",
+		"prompts"
+	],
+	"license": "MIT",
+	"type": "module",
+	"main": "./index.ts",
+	"types": "./index.ts",
+	"exports": {
+		".": "./index.ts",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"index.ts",
+		"src",
+		"README.md"
+	],
+	"pi": {
+		"extensions": [
+			"./index.ts"
+		]
+	},
+	"engines": {
+		"node": ">=22.18.0"
+	},
+	"scripts": {
+		"test": "node --test \"test/**/*.test.ts\"",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.0",
+		"typescript": "^5.9.0"
+	}
+}
