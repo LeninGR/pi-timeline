@@ -79,6 +79,7 @@ back to a notice instead of throwing.
   plugins para gentle-shell: https://github.com/Gentleman-Programming/gentle-shell»
 - **L2** (user, verbatim): «acá hay un ejemplo de un plugin que hizo alguien para
   gentle-shell: https://github.com/facundomv01/pi-qwencloud-quota#readme»
+- **L8** (user, verbatim): «renombra la carpeta del repo para que se llame así como el paquete npm»
 - **L7** (user, verbatim): «aparece así [Image#1] a la derecha se ve cortado, deberías de mover
   el indicador de cantidad de prompts y a la lista ponerle padding»
 - **L6** (user, verbatim): «podemos hacer que el modal se centre en la salida del modelo y
@@ -90,3 +91,5 @@ back to a notice instead of throwing.
   muevas timeline dentro de gentle-shell»
 - **L4** (user, decision): destino final elegido entre las opciones ofrecidas —
   `plugins/gentle-shell/timeline`; el clon de referencia de `gentle-shell` se borró entero.
+  Después la carpeta se renombró a `plugins/gentle-shell/pi-timeline` para que coincida con el
+  nombre del paquete npm (L8).
