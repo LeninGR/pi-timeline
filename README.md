@@ -37,22 +37,25 @@ Only user turns are listed: tool results, compaction summaries, custom entries a
 
 ## Install
 
-### From this checkout
+### From a checkout
 
 ```bash
-pi install /Users/max/Documents/workspace/plugins/gentle-shell/pi-timeline
+git clone https://github.com/LeninGR/pi-timeline.git
+pi install ./pi-timeline
 ```
 
 ### Without touching your configuration
 
 ```bash
-pi -e /Users/max/Documents/workspace/plugins/gentle-shell/pi-timeline
+pi -e ./pi-timeline
 ```
 
-### Loose extension (what this checkout uses while developing)
+### Loose extension (what a development checkout uses)
+
+From inside the checkout, so the link always points at your working copy:
 
 ```bash
-ln -s /Users/max/Documents/workspace/plugins/gentle-shell/pi-timeline ~/.gentle-shell/agent/extensions/pi-timeline
+ln -s "$PWD" ~/.gentle-shell/agent/extensions/pi-timeline
 ```
 
 Pi discovers `<agent home>/extensions/<name>/index.ts` on startup, so `/reload` is enough after a change.
@@ -60,7 +63,7 @@ Pi discovers `<agent home>/extensions/<name>/index.ts` on startup, so `/reload` 
 ### In `settings.json`
 
 ```json
-{ "packages": ["/Users/max/Documents/workspace/plugins/gentle-shell/pi-timeline"] }
+{ "packages": ["./pi-timeline"] }
 ```
 
 The package declares its entry through the `pi.extensions` manifest in `package.json` (`./index.ts`). It has no runtime dependencies: Pi loads it with jiti, and every Pi type here is a local structural shim, so nothing needs to be installed.
