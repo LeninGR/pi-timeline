@@ -29,6 +29,8 @@ to that point.
 - **T5** — `src/extension.ts` + `index.ts`: register `/timeline`, open the modal, apply the
   jump, degrade with a notice when the runtime has no scrollable transcript. Spec: S2–S4.
 - **T6** — tests (`node --test`) + live install into the agent extension dir. Spec: S1–S4.
+- **T9** — inner padding on the card (1 left, 2 right) for header, rows and footer.
+  Spec: S7.
 - **T8** — `src/overlay.ts`: read the rail width gentle-shell publishes on the terminal and
   pass it as a live right margin plus an absolute width, so the overlay is centred inside
   the conversation column and re-seats itself on resize. Spec: S6.
@@ -77,6 +79,8 @@ back to a notice instead of throwing.
   plugins para gentle-shell: https://github.com/Gentleman-Programming/gentle-shell»
 - **L2** (user, verbatim): «acá hay un ejemplo de un plugin que hizo alguien para
   gentle-shell: https://github.com/facundomv01/pi-qwencloud-quota#readme»
+- **L7** (user, verbatim): «aparece así [Image#1] a la derecha se ve cortado, deberías de mover
+  el indicador de cantidad de prompts y a la lista ponerle padding»
 - **L6** (user, verbatim): «podemos hacer que el modal se centre en la salida del modelo y
   que no pise las cards de la derecha, se entiende?»
 - **L5** (user, verbatim): «podemos hacer que el modal de timeline tenga el estilo que el

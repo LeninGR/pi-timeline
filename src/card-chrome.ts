@@ -44,6 +44,14 @@ export function cardContentWidth(width: number): number {
 	return Math.max(1, Math.floor(width) - 4);
 }
 
+/**
+ * Inner breathing room inside the chrome. Native cards keep their text off the
+ * edge, which is also what keeps a truncated line from being clipped instead of
+ * ending in its own ellipsis.
+ */
+export const ROW_PAD_LEFT = 1;
+export const ROW_PAD_RIGHT = 2;
+
 const FLOAT_BG_ROLE = "toolSuccessBg";
 
 function paint(theme: CardTheme, role: CardRole, text: string): string {
@@ -93,14 +101,18 @@ function styleSegment(theme: CardTheme, segment: CardSegment): string {
 	return paint(theme, segment.role, segment.bold ? bold(theme, segment.text) : segment.text);
 }
 
-/** Builds one content row exactly `width` cells wide, clipping at a segment boundary. */
+/**
+ * Builds one content row exactly `width` cells wide: `ROW_PAD_LEFT` columns of
+ * room on the left, `ROW_PAD_RIGHT` on the right, clipping in between.
+ */
 export function renderSegments(theme: CardTheme, segments: readonly CardSegment[], width: number): string {
-	let out = "";
+	const room = Math.max(1, width - ROW_PAD_LEFT - ROW_PAD_RIGHT);
+	let out = " ".repeat(Math.min(ROW_PAD_LEFT, width));
 	let used = 0;
 	for (const segment of segments) {
-		const room = width - used;
-		if (room <= 0) break;
-		const text = truncate(segment.text, room);
+		const left = room - used;
+		if (left <= 0) break;
+		const text = truncate(segment.text, left);
 		out += styleSegment(theme, { ...segment, text });
 		used += widthOf(text);
 		if (text !== segment.text) break;
@@ -112,18 +124,21 @@ export function renderSegments(theme: CardTheme, segments: readonly CardSegment[
 export function renderHeader(theme: CardTheme, title: string, right: string, width: number): string {
 	const glyph = "▾";
 	const plainLeft = `${glyph} ${title}`;
-	if (right && widthOf(right) + 1 + Math.min(widthOf(plainLeft), 12) <= width) {
-		const room = width - widthOf(right) - 1;
+	// The count is inset like the rows are, so it never sits on the card's edge.
+	const edge = width - ROW_PAD_RIGHT;
+	if (right && widthOf(right) + 1 + Math.min(widthOf(plainLeft), 12) + ROW_PAD_LEFT <= edge) {
+		const room = edge - widthOf(right) - 1 - ROW_PAD_LEFT;
 		const left = `${paint(theme, "muted", glyph)} ${paint(theme, "text", bold(theme, title))}`;
 		const shown = widthOf(plainLeft) <= room ? plainLeft : truncate(plainLeft, room);
 		const styled = shown === plainLeft ? left : `${paint(theme, "muted", glyph)} ${paint(theme, "text", bold(theme, shown.slice(2)))}`;
-		return `${styled}${" ".repeat(Math.max(0, width - widthOf(shown) - widthOf(right)))}${paint(theme, "muted", right)}`;
+		const lead = " ".repeat(ROW_PAD_LEFT);
+		return pad(`${lead}${styled}${" ".repeat(Math.max(0, edge - ROW_PAD_LEFT - widthOf(shown) - widthOf(right)))}${paint(theme, "muted", right)}`, width);
 	}
-	const shown = truncate(plainLeft, width);
+	const shown = truncate(plainLeft, Math.max(1, width - ROW_PAD_LEFT - ROW_PAD_RIGHT));
 	const styled = shown.startsWith(glyph) && shown.length > 1
 		? `${paint(theme, "muted", glyph)} ${paint(theme, "text", bold(theme, shown.slice(2)))}`
 		: paint(theme, "text", bold(theme, shown));
-	return pad(styled, width);
+	return pad(`${" ".repeat(ROW_PAD_LEFT)}${styled}`, width);
 }
 
 function bodyRows(theme: CardTheme, frame: CardFrame, width: number): CardBodyRow[] {

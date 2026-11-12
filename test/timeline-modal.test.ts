@@ -169,6 +169,40 @@ test("S3: every rendered row fits the render width in both styles", () => {
 	}
 });
 
+test("S6: the prompt count and the rows keep clear of the card's right edge", () => {
+	const texts = ["un prompt largo que se va a recortar seguro porque no entra ni a palos", "otro"];
+	for (const style of ["neon", "float"] as const) {
+		const { theme } = floatTheme();
+		const { modal } = open(texts, { style, theme });
+		const width = 52;
+		const rendered = visible(modal.render(width));
+
+		const lastText = (line: string): number => line.replace(/\s+$/u, "").length;
+		for (const line of rendered) {
+			// The neon frame rows are chrome, not content: their rail is the last column.
+			if (line.startsWith("╭") || line.startsWith("╰")) continue;
+			const content = style === "neon" ? line.replace(/\s*│$/u, "") : line;
+			assert.ok(lastText(content) <= width - 3, `${style}: row reaches the edge: ${JSON.stringify(line)}`);
+		}
+
+		if (style === "float") {
+			// The count sits two columns inside the edge rather than on it.
+			const header = rendered.find((line) => line.includes("TIMELINE")) ?? "";
+			assert.match(header, /2\/2 prompts\s{3,}$/u);
+		} else {
+			// Neon keeps it in the top rule, where nothing can be clipped.
+			assert.match(rendered[0] ?? "", /2\/2 prompts ─╮$/u);
+		}
+	}
+});
+
+test("S6: a truncated prompt ends in its own ellipsis, never flush against the edge", () => {
+	const { theme } = floatTheme();
+	const { modal } = open(["un prompt larguísimo con muchísimo texto para recortar en serio"], { style: "float", theme });
+	const row = visible(modal.render(48)).find((line) => line.includes("›")) ?? "";
+	assert.match(row, /…\s{3,}$/u);
+});
+
 test("S4: the float style paints the card background behind every row", () => {
 	const { theme, bgCalls } = floatTheme();
 	const { modal } = open(["uno", "dos"], { style: "float", theme });
